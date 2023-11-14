@@ -1,0 +1,4 @@
+Vegetable      ,5,15
+maggi          ,5,13
+Hello          ,4,15
+ramen,5,90
