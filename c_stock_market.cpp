@@ -520,10 +520,10 @@ void admin_store_product() {
     myfile.open("products.txt");
 
     for (int x = 0; x < maxrow; x++) {
-        if (ProductName[x] == "\0") {
+        if (ProductNameT[x] == "\0") {
             break;
         } else {
-            myfile << ProductName[x] + "," + to_string(Price[x]) + "," + to_string(Quantity[x]) << endl;
+            myfile << ProductNameT[x] + "," + to_string(PriceT[x]) + "," + to_string(QuantityT[x]) << endl;
         }
     }
 
@@ -550,10 +550,10 @@ void admin_add_product() {
     cout << "\t\t\t\t\t\tPrice: ";cin >> price;cout<<endl;
 
     for (int x = 0; x < maxrow; x++) {
-        if (ProductName[x] == "\0") {
-            ProductName[x] = productName;
-            Quantity[x] = quantity;
-            Price[x] = price;
+        if (ProductNameT[x] == "\0") {
+            ProductNameT[x] = productName;
+            QuantityT[x] = quantity;
+            PriceT[x] = price;
             break;
         }
     }
@@ -883,7 +883,6 @@ void admin(){
     */
 
     system("cls");
-    Open_all_files();
     int option;
 
     do
@@ -1433,6 +1432,7 @@ void check() {
     }
     else{
         ofstream newfile("admin.txt");
+        newfile << "admin,admin123"<<endl;
     }
     file.close();
     

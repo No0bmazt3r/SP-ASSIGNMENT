@@ -1,4 +1,3 @@
-Vegetable      ,5,15
-maggi          ,5,13
-Hello          ,4,15
-ramen,5,90
+sharvin,10.000000,5
+kree,7.000000,7
+nik,10.000000,6
