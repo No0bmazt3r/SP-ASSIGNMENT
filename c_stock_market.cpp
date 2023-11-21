@@ -2,6 +2,10 @@
 #include<fstream>
 #include<string>
 #include<stdio.h>
+#include <windows.h>
+#include <conio.h>
+#include<iomanip>
+
 using namespace std;
 
 /*
@@ -30,6 +34,25 @@ string ProductNameT[maxrow] = {};
 int QuantityT[maxrow] = {};
 double PriceT[maxrow] = {};
 
+
+int getArrowKey() {
+    int ch = _getch();
+    if (ch == 0 || ch == 224) {
+        ch = _getch();
+        return ch;
+    }
+    return ch;
+}
+
+void setConsoleColor(int color) {
+    SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), color);
+}
+
+void resetConsoleColor() {
+    setConsoleColor(15); // Set to default color
+}
+
+
 void temp_Products_data(){
 
     /*
@@ -53,36 +76,55 @@ void temp_Products_data(){
     ifstream file("products.txt");
 
     if (file.is_open()) {
-        int counter = 0;
+        ofstream tempFile("temp_products.txt");  // Create a temporary file
 
-        while (getline(file, line)) {
-            size_t pos1 = line.find(',');
-            size_t pos2 = line.find(',', pos1 + 1);
+        if (tempFile.is_open()) {
+            int counter = 0;
 
-            if (pos1 != string::npos && pos2 != string::npos) {
-                string productName = line.substr(0, pos1);
-                double price = stod(line.substr(pos1 + 1, pos2 - pos1));
-                int quantity = stoi(line.substr(pos2 + 1));
+            while (getline(file, line)) {
+                size_t pos1 = line.find(',');
+                size_t pos2 = line.find(',', pos1 + 1);
 
-                if (counter < maxrow) {
-                    ProductNameT[counter] = productName;
-                    PriceT[counter] = price;
-                    QuantityT[counter] = quantity;
-                    counter++;
-                } else {
-                    cout << "Warning: Maximum number of products reached." << endl;
+                if (pos1 != string::npos && pos2 != string::npos) {
+                    string productName = line.substr(0, pos1);
+                    double price = stod(line.substr(pos1 + 1, pos2 - pos1));
+                    int quantity = stoi(line.substr(pos2 + 1));
+
+                    if (quantity > 0) {
+                        if (counter < maxrow) {
+                            ProductNameT[counter] = productName;
+                            PriceT[counter] = price;
+                            QuantityT[counter] = quantity;
+                            counter++;
+                        } else {
+                            cout << "Warning: Maximum number of products reached." << endl;
+                        }
+                    }
                 }
             }
-        }
 
-        if (counter == 0) {
-            cout << "No record found" << endl;
+            // Write the data to the temporary file
+            for (int i = 0; i < counter; ++i) {
+                tempFile << ProductNameT[i] << "," << PriceT[i] << "," << QuantityT[i] << endl;
+            }
+
+            if (counter == 0) {
+                cout << "No record found" << endl;
+            }
+
+            tempFile.close();
+        } else {
+            cout << "Temporary file is not open" << endl;
         }
 
         file.close();
+
+        // Replace the original file with the temporary file
+        remove("products.txt");
+        rename("temp_products.txt", "products.txt");
     } else {
         cout << "File is not open" << endl;
-    }    
+    }
 }
 
 void OpenProducts() {
@@ -108,16 +150,19 @@ void OpenProducts() {
     ifstream file("products.txt");
 
     if (file.is_open()) {
-        int counter = 0;
+        ofstream tempFile("temp_products1.txt");  // Create a temporary file
 
-        while (getline(file, line)) {
-            size_t pos1 = line.find(',');
-            size_t pos2 = line.find(',', pos1 + 1);
+        if (tempFile.is_open()) {
+            int counter = 0;
 
-            if (pos1 != string::npos && pos2 != string::npos) {
-                string productName = line.substr(0, pos1);
-                double price = stod(line.substr(pos1 + 1, pos2 - pos1));
-                int quantity = stoi(line.substr(pos2 + 1));
+            while (getline(file, line)) {
+                size_t pos1 = line.find(',');
+                size_t pos2 = line.find(',', pos1 + 1);
+
+                if (pos1 != string::npos && pos2 != string::npos) {
+                    string productName = line.substr(0, pos1);
+                    double price = stod(line.substr(pos1 + 1, pos2 - pos1));
+                    int quantity = stoi(line.substr(pos2 + 1));
 
                 if (productName.length() < 15) {
                     int spacesToAdd = 15 - productName.length();
@@ -126,22 +171,38 @@ void OpenProducts() {
                     }
                 }
 
-                if (counter < maxrow) {
-                    ProductName[counter] = productName;
-                    Price[counter] = price;
-                    Quantity[counter] = quantity;
-                    counter++;
-                } else {
-                    cout << "Warning: Maximum number of products reached." << endl;
+                    if (quantity > 0) {
+                        if (counter < maxrow) {
+                            ProductName[counter] = productName;
+                            Price[counter] = price;
+                            Quantity[counter] = quantity;
+                            counter++;
+                        } else {
+                            cout << "Warning: Maximum number of products reached." << endl;
+                        }
+                    }
                 }
             }
-        }
 
-        if (counter == 0) {
-            cout << "No record found" << endl;
+            // Write the data to the temporary file
+            for (int i = 0; i < counter; ++i) {
+                tempFile << ProductNameT[i] << "," << PriceT[i] << "," << QuantityT[i] << endl;
+            }
+
+            if (counter == 0) {
+                cout << "No records found" << endl;
+            }
+
+            tempFile.close();
+        } else {
+            cout << "Temporary file is not open" << endl;
         }
 
         file.close();
+
+        // Replace the original file with the temporary file
+        remove("products.txt");
+        rename("temp_products1.txt", "products.txt");
     } else {
         cout << "File is not open" << endl;
     }
@@ -328,7 +389,6 @@ void temp_Customer_user(){
     } 
 }
 
-
 void admin_delete_user(){
 
     /*
@@ -346,7 +406,9 @@ void admin_delete_user(){
 
     string search;
     cout << "\t\t\t\t\t\tEnter the username to be deleted: ";
+    setConsoleColor(2);
     cin >> search;
+    resetConsoleColor();
 
     bool userFound = false;
     int index = -1;
@@ -357,12 +419,20 @@ void admin_delete_user(){
             index = x;
 
             cout << "\t\t\t\t\t\tUser found:" << endl;
-            cout << "\t\t\t\t\t\tUsername: " << UsernameT[x] << endl;
-            cout << "\t\t\t\t\t\tPassword: " << PasswrodT[x] << endl;
+            cout << "\t\t\t\t\t\tUsername: ";
+            setConsoleColor(2);
+            cout<< UsernameT[x] << endl;
+            resetConsoleColor();
+            cout << "\t\t\t\t\t\tPassword: ";
+            setConsoleColor(2);
+            cout<< PasswrodT[x] << endl;
+            resetConsoleColor();
 
             char confirm;
             cout << "\n\t\t\t\t\t\tAre you sure you want to delete this user? (y/n): ";
+            setConsoleColor(2);
             cin >> confirm;
+            resetConsoleColor();
 
             if (confirm == 'y' || confirm == 'Y') {
                 UsernameT[x] = "";
@@ -409,6 +479,7 @@ void ListProducts(){
     7. Display a footer for the product list.
     */    
 
+    temp_Products_data();
     Open_all_files();
     system ("cls");
 
@@ -451,9 +522,12 @@ void admin_delete_product() {
     */
 
     temp_Products_data();
+    ListProducts();
     string search;
     cout << "\t\t\t\t\t\tEnter the product name: ";
+    setConsoleColor(2);
     cin >> search;
+    resetConsoleColor();
 
     bool productFound = false;
     int index = -1;
@@ -464,13 +538,24 @@ void admin_delete_product() {
             index = x;
 
             cout << "\t\t\t\t\t\tProduct found:" << endl;
-            cout << "\t\t\t\t\t\tName: " << ProductNameT[x] << endl;
-            cout << "\t\t\t\t\t\tPrice: RM" << PriceT[x] << endl;
-            cout << "\t\t\t\t\t\tQuantity available: " << QuantityT[x] << endl;
+            cout << "\t\t\t\t\t\tName: ";
+            setConsoleColor(2);
+            cout<< ProductNameT[x] << endl;
+            resetConsoleColor();
+            cout << "\t\t\t\t\t\tPrice: RM";
+            setConsoleColor(2);
+            cout<< PriceT[x] << endl;
+            resetConsoleColor();
+            cout << "\t\t\t\t\t\tQuantity available: ";
+            setConsoleColor(2);
+            cout<< QuantityT[x] << endl;
+            resetConsoleColor();
 
             char confirm;
             cout << "\n\t\t\t\t\t\tAre you sure you want to delete this product? (y/n): ";
+            setConsoleColor(2);
             cin >> confirm;
+            resetConsoleColor();
 
             if (confirm == 'y' || confirm == 'Y') {
                 ProductNameT[x] = "";
@@ -544,10 +629,21 @@ void admin_add_product() {
     int quantity;
     double price;
 
+    ListProducts();
+
     cout << "\t\t\t\t\t\tAdd Product to Stock\n";
-    cout << "\t\t\t\t\t\tProduct Name: ";cin >> productName;cout<<endl;
-    cout << "\t\t\t\t\t\tQuantity: ";cin >> quantity;cout<<endl;
-    cout << "\t\t\t\t\t\tPrice: ";cin >> price;cout<<endl;
+    cout << "\t\t\t\t\t\tProduct Name: ";
+    setConsoleColor(2);
+    cin >> productName;cout<<endl;
+    resetConsoleColor();
+    cout << "\t\t\t\t\t\tQuantity: ";
+    setConsoleColor(2);
+    cin >> quantity;cout<<endl;
+    resetConsoleColor();
+    cout << "\t\t\t\t\t\tPrice: ";
+    setConsoleColor(2);
+    cin >> price;cout<<endl;
+    resetConsoleColor();
 
     for (int x = 0; x < maxrow; x++) {
         if (ProductNameT[x] == "\0") {
@@ -566,17 +662,20 @@ void admin_edit_product() {
     1. Call the temp_Products_data() function to populate temporary arrays with product data.
     2. Prompt the admin to enter the product name to be edited.
     3. Iterate through the temporary arrays to find the specified product name.
-    4. If the product name is found, display current details and prompt for new details.
-    5. Update the temporary arrays with the new details.
+    4. If the product name is found, display current details and prompt for confirmation.
+    5. If confirmed, update the temporary arrays with the new details.
     6. Write the updated details to the "products.txt" file.
     7. Display a success message if the product details are updated.
     8. If the product name is not found, display a corresponding message.
     */
 
     temp_Products_data();
+    ListProducts();
     string search;
-    cout << "\t\t\t\t\t\tEnter the product name: ";
+    cout << "\t\t\t\t\t\tEnter the product name you want to edit: ";
+    setConsoleColor(2);
     cin >> search;
+    resetConsoleColor();
 
     bool productFound = false;
     int index = -1;
@@ -586,29 +685,54 @@ void admin_edit_product() {
             index = x;
 
             cout << "\t\t\t\t\t\tProduct found:" << endl;
-            cout << "\t\t\t\t\t\tName: " << ProductNameT[x] << endl;
-            cout << "\t\t\t\t\t\tPrice: RM" << PriceT[x] << endl;
-            cout << "\t\t\t\t\t\tQuantity available: " << QuantityT[x] << endl;
+            cout << "\t\t\t\t\t\tName: ";
+            setConsoleColor(2);
+            cout<< ProductNameT[x] << endl;
+            resetConsoleColor();
+            cout << "\t\t\t\t\t\tPrice: RM";
+            setConsoleColor(2);
+            cout<< PriceT[x] << endl;
+            resetConsoleColor();
+            cout << "\t\t\t\t\t\tQuantity available: ";
+            setConsoleColor(2);
+            cout<< QuantityT[x] << endl;
+            resetConsoleColor();
 
-            cout << "\n\t\t\t\t\t\tEnter new details:" << endl;
-            cout << "\t\t\t\t\t\tNew Name: ";
-            cin >> ProductNameT[x];
-            cout << "\t\t\t\t\t\tNew Price: $";
-            cin >> PriceT[x];
-            cout << "\t\t\t\t\t\tNew Quantity: ";
-            cin >> QuantityT[x];
+            cout << "\t\t\t\t\t\tDo you want to edit this product? (Y/N): ";
+            char confirmation;
+            setConsoleColor(2);
+            cin >> confirmation;
+            resetConsoleColor();
 
-            cout << "\t\t\t\t\t\tProduct details updated successfully." << endl;
+            if (confirmation == 'Y' || confirmation == 'y') {
+                cout << "\n\t\t\t\t\t\tEnter new details:" << endl;
+                cout << "\t\t\t\t\t\tNew Name: ";
+                setConsoleColor(2);
+                cin >> ProductNameT[x];
+                resetConsoleColor();
+                cout << "\t\t\t\t\t\tNew Price: RM";
+                setConsoleColor(2);
+                cin >> PriceT[x];
+                resetConsoleColor();
+                cout << "\t\t\t\t\t\tNew Quantity: ";
+                setConsoleColor(2);
+                cin >> QuantityT[x];
+                resetConsoleColor();
 
-            ofstream file("products.txt");
+                cout << "\t\t\t\t\t\tProduct details updated successfully." << endl;
 
-            for (int i = 0; i < maxrow; ++i) {
-                if (ProductName[i] != "\0") {
-                    file << ProductNameT[i] << "," << PriceT[i] << "," << QuantityT[i] << endl;
+                ofstream file("products.txt");
+
+                for (int i = 0; i < maxrow; ++i) {
+                    if (ProductName[i] != "\0") {
+                        file << ProductNameT[i] << "," << PriceT[i] << "," << QuantityT[i] << endl;
+                    }
                 }
-            }
 
-            file.close();
+                file.close();
+            } else {
+                cout << "\t\t\t\t\t\tEditing canceled by user." << endl;
+            }
 
             break;
         }
@@ -620,61 +744,74 @@ void admin_edit_product() {
     }
 }
 
-void admin_view_products() {
+void drawAdminViewProducts(int selectedOption, int maxOption) {
+    system("cls");
+    cout << "\t\t\t\t\t\t\t\t===============================" << endl;
+    cout << "\t\t\t\t\t\t\t\t         Products Menu" << endl;
+    cout << "\t\t\t\t\t\t\t\t===============================" << endl;
 
-    /*
-    This function allows an admin to view, add, edit, or delete products.
-    1. Call the Open_all_files() function to ensure all necessary files are open.
-    2. Display the current list of products using the ListProducts() function.
-    3. Present a menu to the admin with options to add, edit, delete products, or exit to the main menu.
-    4. Validate the user input to ensure a valid option is selected.
-    5. Perform the corresponding action based on the selected option.
-    6. Repeat the menu until the admin chooses to exit to the main menu.
-    */
-
-    Open_all_files();
-    int option;
-    do
-    {
-        system("cls");
-        ListProducts();
-
-        cout << "\n\t\t\t\t\t\tPlease select any option below." << endl;
-        cout << "\t\t\t\t\t\t1. Add a Product." << endl;
-        cout << "\t\t\t\t\t\t2. Edit a Product." << endl;
-        cout << "\t\t\t\t\t\t3. Delete a Product." << endl;
-        cout << "\t\t\t\t\t\t4. Exit to main menu." << endl;
-        cout<<"\t\t\t\t\t\tChoose an Option: ";cin>>option;cout<<endl;
-
-        if (option == 1 || option == 2 || option == 3 || option == 4){
-        }
-        else{
-            while (!(cin>>option))
-            {
-                cout<<"\n\t\t\t\t\t\tPlease enter a valid option only : ";
-                cin.clear();
-                cin.ignore(1230, '\n');
-            }
+    for (int i = 1; i <= maxOption; ++i) {
+        if (i == selectedOption) {
+            setConsoleColor(4 + 240);
+            cout << "\t\t\t\t\t\t\t\t\t" << i << ". ";
+        } else {
+            resetConsoleColor(); // Reset text color for non-selected options
+            cout << "\t\t\t\t\t\t\t\t\t" << i << ". ";
         }
 
-        switch (option) {
+        switch (i) {
             case 1:
-                admin_add_product();
-                admin_store_product();
+                cout << "Add a Product" << endl;
                 break;
             case 2:
-                temp_Products_data();
-                admin_edit_product();
+                cout << "Edit a Product" << endl;
                 break;
             case 3:
-                temp_Products_data();
-                admin_delete_product();
+                cout << "Delete a Product" << endl;
                 break;
-            default:
+            case 4: 
+                cout << "Exit to Main Menu" << endl;
+        }
+    }
+    resetConsoleColor(); // Reset text color after drawing the menu
+    cout << "\t\t\t\t\t\t\t\t===============================" << endl;
+}
+
+void admin_view_products() {
+    int option = 1;
+    int key;
+
+    do {
+
+        drawAdminViewProducts(option,4);
+
+        key = getArrowKey();
+
+        switch (key) {
+            case 72: // Up arrow key
+                option = (option == 1) ? 3 : option - 1;
+                break;
+            case 80: // Down arrow key
+                option = (option == 4) ? 1 : option + 1;
+                break;
+            case 13: // Enter key
+                switch (option) {
+                    case 1:
+                        admin_add_product();
+                        admin_store_product();
+                        break;
+                    case 2:
+                        temp_Products_data();
+                        admin_edit_product();
+                        break;
+                    case 3:
+                        temp_Products_data();
+                        admin_delete_product();
+                        break;
+                }
                 break;
         }
-    } while (option != 4);
-    
+    } while (key != 13 || option != 4);
 }
 
 void ViewAdmin(){
@@ -776,7 +913,9 @@ void edit_user() {
     string search;
     char decision;
     cout << "\t\t\t\t\t\tEnter the user you wish to update details: ";
+    setConsoleColor(2);
     cin >> search;
+    resetConsoleColor();
     bool userFound = false;
     int index = -1;
 
@@ -786,20 +925,32 @@ void edit_user() {
             index = x;
             system("cls");
             cout << "\t\t\t\t\t\tUser found:" << endl;
-            cout << "\t\t\t\t\t\tName: " << UsernameT[x] << endl;
-            cout << "\t\t\t\t\t\tPassword: " << PasswrodT[x] << endl;
+            cout << "\t\t\t\t\t\tName: ";
+            setConsoleColor(2);
+            cout<< UsernameT[x] << endl;
+            resetConsoleColor();
+            cout << "\t\t\t\t\t\tPassword: ";
+            setConsoleColor(2);
+            cout<< PasswrodT[x] << endl;
+            resetConsoleColor();
 
             cout << "\t\t\t\t\t\tDo you wish to update the user details??? (y/n): ";
+            setConsoleColor(2);
             cin >> decision;
+            resetConsoleColor();
             cout << endl;
 
             if (decision == 'y' || decision == 'Y') {
                 cout << "\n\t\t\t\t\t\tEnter new details:" << endl;
                 cout << "\t\t\t\t\t\tNew Name: ";
-                cin >> UsernameT[x];  
+                setConsoleColor(2);
+                cin >> UsernameT[x];
+                resetConsoleColor();  
 
                 cout << "\t\t\t\t\t\tNew Password: ";
-                cin >> PasswrodT[x];  
+                setConsoleColor(2);
+                cin >> PasswrodT[x];
+                resetConsoleColor();  
 
                 cout << "\t\t\t\t\t\tUser details updated successfully." << endl;
 
@@ -823,104 +974,129 @@ void edit_user() {
     }
 }
 
-void admin_edit_users(){
+void drawAdminEditUsersMenu(int selectedOption, int maxOption) {
+    system("cls");
+    cout << "\t\t\t\t\t\t\t\t===============================" << endl;
+    cout << "\t\t\t\t\t\t\t\t    Admin Edit User Menu" << endl;
+    cout << "\t\t\t\t\t\t\t\t===============================" << endl;
 
-    /*
-    This function allows the administrator to edit or delete user accounts.
-    1. Display the current list of users using the ViewUsers() function.
-    2. Present a menu to the administrator with options to edit a user, delete a user, or exit.
-    3. Validate the user input to ensure a valid option is selected.
-    4. Perform the corresponding action based on the selected option.
-    5. Repeat the menu until the administrator chooses to exit.
-    */
-
-    int option;
-    do
-    {
-        system("cls");
-        ViewUsers();
-        cout << "\n\t\t\t\t\t\tPlease select any option below." << endl;
-        cout << "\t\t\t\t\t\t1. Edit User." << endl;
-        cout << "\t\t\t\t\t\t2. Delete User." << endl;
-        cout << "\t\t\t\t\t\t3. Exit." << endl;
-        cout<<"\t\t\t\t\t\tChoose an Option: ";cin>>option;cout<<endl;
-
-        if (option == 1 || option == 2 || option == 3){
-        }
-        else{
-            while (!(cin>>option))
-            {
-                cout<<"\n\t\t\t\t\t\tPlease enter a valid option only : ";
-                cin.clear();
-                cin.ignore(1230, '\n');
-            }
+    for (int i = 1; i <= maxOption; ++i) {
+        if (i == selectedOption) {
+            setConsoleColor(4 + 240);
+            cout << "\t\t\t\t\t\t\t\t\t" << i << ". ";
+        } else {
+            resetConsoleColor(); // Reset text color for non-selected options
+            cout << "\t\t\t\t\t\t\t\t\t" << i << ". ";
         }
 
-        switch (option) {
+        switch (i) {
             case 1:
-                ViewUsers();
-                edit_user();
+                cout << "Edit User" << endl;
                 break;
             case 2:
-                ViewUsers();
-                admin_delete_user();
+                cout << "Delete User" << endl;
                 break;
-            default:
+            case 3:
+                cout << "Exit" << endl;
                 break;
         }
-    } while (option != 3);
+    }
+    resetConsoleColor(); // Reset text color after drawing the menu
+    cout << "\t\t\t\t\t\t\t\t===============================" << endl;
 }
 
-void admin(){
+void adminEditUsers() {
+    int option = 1;
+    int key;
 
-    /*
-    This function provides the main menu for administrators.
-    1. Display a welcome message with the administrator's username.
-    2. Present a menu with options to view all users, view all admins, view all products, or log out.
-    3. Validate user input to ensure a valid option is selected.
-    4. Perform the corresponding action based on the selected option.
-    5. Repeat the menu until the administrator chooses to log out.
-    */
+    do {
+        drawAdminEditUsersMenu(option, 3);
 
+        key = getArrowKey();
+
+        switch (key) {
+            case 72: // Up arrow key
+                option = (option == 1) ? 3 : option - 1;
+                break;
+            case 80: // Down arrow key
+                option = (option == 3) ? 1 : option + 1;
+                break;
+            case 13: // Enter key
+                switch (option) {
+                    case 1:
+                        ViewUsers();
+                        edit_user();
+                        break;
+                    case 2:
+                        ViewUsers();
+                        admin_delete_user();
+                        break;
+                }
+                break;
+        }
+    } while (key != 13 || option != 3);
+}
+
+void drawAdminMenu(int selectedOption, int maxOption) {
     system("cls");
-    int option;
+    cout << "\t\t\t\t\t\t\t\t===============================" << endl;
+    cout << "\t\t\t\t\t\t\t\t         Admin Menu" << endl;
+    cout << "\t\t\t\t\t\t\t\t===============================" << endl;
 
-    do
-    {
-        cout << "\t\t\t\t\t\tHello and welcome "<< CUsername<<endl;
-        cout<<"\n\t\t\t\t\t\tPlease select any option below. "<<endl;
-        cout<<"\t\t\t\t\t\t1. View All users"<<endl;
-        cout<<"\t\t\t\t\t\t2. Vies all admins. "<<endl;
-        cout<<"\t\t\t\t\t\t3. View all products. "<<endl;
-        cout<<"\t\t\t\t\t\t4. Log Out."<<endl;
-        cout << "\n\t\t\t\t\t\tPlease choose one of the option: ";cin>>option;cout<<endl;
-
-        if (option == 1 || option == 2 || option == 3 || option == 4 || option == 5){
-        }
-        else{
-            while (!(cin>>option) || option != 1 || option != 2 || option != 3 || option != 4 || option != 5)
-            {
-                cout<<"\t\t\t\t\t\tPlease enter a valid option only : ";
-                cin.clear();
-                cin.ignore(1230, '\n');
-            }
+    for (int i = 1; i <= maxOption; ++i) {
+        if (i == selectedOption) {
+            setConsoleColor(4 + 240);
+            cout << "\t\t\t\t\t\t\t\t\t" << i << ". ";
+        } else {
+            resetConsoleColor(); // Reset text color for non-selected options
+            cout << "\t\t\t\t\t\t\t\t\t" << i << ". ";
         }
 
-        switch (option)
-        {
-        case 1:
-            admin_edit_users();
-            break;
-        case 2:
-            ViewAdmin();
-            break;
-        case 3:
-            admin_view_products();
-            break;
+        switch (i) {
+            case 1:
+                cout << "View All Users" << endl;
+                break;
+            case 2:
+                cout << "View All Products" << endl;
+                break;
+            case 3: 
+                cout << "Log Out" << endl;
         }
+    }
+    resetConsoleColor(); // Reset text color after drawing the menu
+    cout << "\t\t\t\t\t\t\t\t===============================" << endl;
+}
 
-    } while (option != 4);
+void Admin() {
+    int option = 1;
+    int key;
 
+    do {
+        drawAdminMenu(option,3);
+
+        key = getArrowKey();
+
+        switch (key) {
+            case 72: // Up arrow key
+                option = (option == 1) ? 3 : option - 1;
+                break;
+            case 80: // Down arrow key
+                option = (option == 3) ? 1 : option + 1;
+                break;
+            case 13: // Enter key
+                switch (option) {
+                    case 1:
+                        adminEditUsers();
+                        break;
+                    case 2:
+                        admin_view_products();
+                        break;
+                    case 3:
+                        cout << "Succefully Logged Out."<<endl;
+                }
+                break;
+        }
+    } while (key != 13 || option != 3);
 }
 
 
@@ -1043,12 +1219,15 @@ void view_cart() {
     cout << "\t\t\t\t\t\t======================================================\n";
 
     if (overalltotal > 0) {
-        cout << "\t\t\t\t\t\tYour overall total for the items you have bought is " << overalltotal << " . \n\t\t\t\t\t\tThank you and please come again " << CUsername << endl;
+        cout << "\n\t\t\t\t\t\tYour overall total for the items you have bought is RM " << overalltotal << ". \n\t\t\t\t\t\tThank you and please come again " << CUsername << endl;
 
         string option;
-        cout << "\t\t\t\t\t\tWould you like to pay in cash or card? : ";
+        cout << "\n\t\t\t\t\t\tWould you like to pay in cash or card? : ";
+        setConsoleColor(2);
         cin >> option;
+        resetConsoleColor();
         cout << endl;
+
 
         if (option == "cash" || option == "Cash" || option == "CASH") {
             if (remove(("cart" + CUsername + ".txt").c_str()) != 0) {
@@ -1074,26 +1253,13 @@ void view_cart() {
 }
 
 void add_to_cart() {
-
-    /*
-    This function allows the customer to add a product to their cart.
-    1. Call temp_Products_data() to load product data into temporary arrays.
-    2. Prompt the user to enter the product name.
-    3. Search for the product in the array and display its details.
-    4. Ask the user if they want to buy the product.
-    5. If yes, prompt the user for the quantity to buy.
-    6. Update the product quantity in the array.
-    7. Calculate the total price of the purchase.
-    8. Find an empty slot in the cart and update the cart values.
-    9. Update the products file with the new product quantity.
-    10. Write the purchase information to the customer's cart file.
-    */
-
     temp_Products_data();
-    
+
     string search;
     cout << "\t\t\t\t\t\tEnter the product name: ";
+    setConsoleColor(2);
     cin >> search;
+    resetConsoleColor();
 
     bool productFound = false;
     int index = -1;
@@ -1104,16 +1270,25 @@ void add_to_cart() {
             productFound = true;
             index = x;
 
-            cout << "\t\t\t\t\t\tProduct found:" << endl;
-            cout << "\t\t\t\t\t\tName: " << ProductNameT[x] << endl;
-            cout << "\t\t\t\t\t\tPrice: $" << PriceT[x] << endl;
-            cout << "\t\t\t\t\t\tQuantity available: " << QuantityT[x] << endl;
+            cout << "\n\t\t\t\t\t\tProduct found:" << endl;
+            cout << "\t\t\t\t\t\tName: ";
+            setConsoleColor(2);
+            cout << ProductNameT[x] << endl;
+            resetConsoleColor();
+            cout << "\t\t\t\t\t\tPrice: RM ";
+            setConsoleColor(2);
+            cout<< PriceT[x] << endl;
+            resetConsoleColor();
+            cout << "\t\t\t\t\t\tQuantity available: ";
+            setConsoleColor(2);
+            cout<< QuantityT[x] << endl;
+            resetConsoleColor();
             break;
         }
     }
 
     if (!productFound) {
-        cout << "\t\t\t\t\t\tProduct not found." << endl;
+        cout << "\n\t\t\t\t\t\tProduct not found." << endl;
         return;
     }
 
@@ -1121,12 +1296,16 @@ void add_to_cart() {
     double totprice;
     int quantityToBuy;
 
-    cout << "\t\t\t\t\t\tDo you wish to buy this product? (y/n): ";
+    cout << "\n\t\t\t\t\t\tDo you wish to buy this product? (y/n): ";
+    setConsoleColor(2);
     cin >> response;
+    resetConsoleColor();
 
     if (response == 'y' || response == 'Y') {
         cout << "\t\t\t\t\t\tHow much would you like to buy? Enter quantity: ";
+        setConsoleColor(2);
         cin >> quantityToBuy;
+        resetConsoleColor();
 
         if (quantityToBuy > 0 && quantityToBuy <= QuantityT[index]) {
             QuantityT[index] -= quantityToBuy;
@@ -1171,55 +1350,73 @@ void add_to_cart() {
     system("cls");
 }
 
-void Customer(){
+void drawCustomerMenu(int selectedOption, int maxOption) {
+    system("cls");
+    cout << "\t\t\t\t\t\t\t\t===============================" << endl;
+    cout << "\t\t\t\t\t\t\t\t         Customer Menu" << endl;
+    cout << "\t\t\t\t\t\t\t\t===============================" << endl;
 
-    /*
-    This function represents the customer menu.
-    1. Display a welcome message.
-    2. Allow the customer to choose from the following options:
-        - View Available Products
-        - View Cart
-        - Log Out
-    3. Validate the user input.
-    4. Perform the corresponding action based on the user's choice.
-    5. Continue the loop until the customer chooses to log out.
-    */
-
-    int option;
-    cout << "\t\t\t\t\t\tHello and welcome "<< CUsername<<endl;
-
-    do
-    {
-        cout<<"\t\t\t\t\t\tPlease select any option below. "<<endl;
-        cout<<"\t\t\t\t\t\t1. View Available Products."<<endl;
-        cout<<"\t\t\t\t\t\t2. View Cart. "<<endl;
-        cout<<"\t\t\t\t\t\t3. Log Out. "<<endl;
-        cout<<"\t\t\t\t\t\tChoose an option: ";cin>>option;cout<<endl;
-
-        if (option == 1 || option == 2 || option == 3 || option == 4){
-        }
-        else{
-            while (!(cin>>option) || option != 1 || option != 2 || option != 3 || option != 4)
-            {
-                cout<<"\t\t\t\t\t\tPlease enter a valid option only : ";
-                cin.clear();
-                cin.ignore(1230, '\n');
-            }
+    for (int i = 1; i <= maxOption; ++i) {
+        if (i == selectedOption) {
+            setConsoleColor(4 + 240);
+            cout << "\t\t\t\t\t\t\t\t\t" << i << ". ";
+        } else {
+            resetConsoleColor(); // Reset text color for non-selected options
+            cout << "\t\t\t\t\t\t\t\t\t" << i << ". ";
         }
 
-        switch (option)
-        {
-        case 1:
-            ListProducts();
-            add_to_cart();
-            break;
-        case 2:
-            view_cart();
-            break;
+        switch (i) {
+            case 1:
+                cout << "Add to Cart" << endl;
+                break;
+            case 2:
+                cout << "View Cart" << endl;
+                break;
+            case 3:
+                cout << "Log Out" << endl;
+                break;
         }
-    } while (option != 3);
-    
+    }
+    resetConsoleColor(); // Reset text color after drawing the menu
+    cout << "\t\t\t\t\t\t\t\t===============================" << endl;
 }
+
+void Customer() {
+    int option;
+    int key;
+
+    do {
+        drawCustomerMenu(option,3);
+
+        key = getArrowKey();
+
+        switch (key) {
+            case 72: // Up arrow key
+                option = (option == 1) ? 3 : option - 1;
+                break;
+            case 80: // Down arrow key
+                option = (option == 3) ? 1 : option + 1;
+                break;
+            case 13: // Enter key
+                switch (option) {
+                    case 1:
+                        system("cls");
+                        ListProducts();
+                        add_to_cart();
+                        break;
+                    case 2:
+                        system("cls");
+                        view_cart();
+                        break;
+                    case 3:
+                        cout << "\n\t\t\t\t\t\t\t\t\tLogging out. Goodbye!" << endl;
+                        break;
+                }
+                break;
+        }
+    } while (key != 13 || option != 3);
+}
+
 
 
 
@@ -1235,8 +1432,14 @@ void Log_in() {
 
     string username, password;
 
-    cout << "\n\t\t\t\t\t\tUsername: "; cin >> username; cout << endl;
-    cout << "\t\t\t\t\t\tPassword: "; cin >> password; cout << endl;
+    cout << "\n\t\t\t\t\t\tUsername: ";
+    setConsoleColor(2);
+    cin >> username; cout << endl;
+    resetConsoleColor();
+    cout << "\t\t\t\t\t\tPassword: "; 
+    setConsoleColor(2);
+    cin >> password; cout << endl;
+    resetConsoleColor();
 
     bool isUser = false;
     bool isAdmin = false;
@@ -1286,9 +1489,9 @@ void Log_in() {
     if (isUser) {
         Customer();
     } else if (isAdmin) {
-        admin();  
+        Admin();  
     } else {
-        cout << "Invalid username or password" << endl;
+        cout << "\t\t\t\t\t\tInvalid username or password" << endl;
     }
 }
 
@@ -1317,83 +1520,122 @@ void store() {
     myfile.close();
 }
 
-void sign_up(){
+bool username_exists(const string& username) {
+    for (int x = 0; x < maxrow; x++) {
+        if (UsernameT[x] == username) {
+            return true;  // Username already exists
+        }
+    }
+    return false;  // Username does not exist
+}
 
-    /*
-    This function simulates the user sign-up process for the C-Stock Market.
-    1. Temporarily load existing user data into memory.
-    2. Clear the console screen.
-    3. Prompt the user for a username and password.
-    4. Iterate through the user data array to find the first available slot.
-    5. Store the new user's information in the available slot.
-    */
+int find_user(const string& username) {
+    for (int x = 0; x < maxrow; x++) {
+        if (UsernameT[x] == username) {
+            return x;  // Return the index of the user
+        }
+    }
+    return -1;  // User not found
+}
 
+void sign_up() {
     temp_Customer_user();
     system("cls");
     string username, password;
-    cout<<"\t\t\t\t\t\tHello and welcome to C-Stock Market Sign Up Page"<<endl;
-    cout<<"\t\t\t\t\t\tPlease enter your Username: ";cin>>username;
-    cout<<"\n\t\t\t\t\t\tPlease enter your Password: ";cin>>password; cout<<endl;
     
-    for (int x = 0; x < maxrow; x++)
-    {
-        if (UsernameT[x] == "\0")
-        {
+    cout << "\t\t\t\t\t\tHello and welcome to C-Stock Market Sign Up Page" << endl;
+    cout << "\t\t\t\t\t\tPlease enter your Username: ";
+    setConsoleColor(2);
+    cin >> username;
+    resetConsoleColor();
+    
+    // Check if the username already exists
+    if (username_exists(username)) {
+        cout << "\n\t\t\t\t\t\tUsername already exists. Please choose a different one." << endl;
+        return;  // Exit the function
+    }
+
+    cout << "\n\t\t\t\t\t\tPlease enter your Password: ";
+    setConsoleColor(2);
+    cin >> password;
+    resetConsoleColor();
+    cout << endl;
+
+    // Find the first available slot and store the new user's information
+    for (int x = 0; x < maxrow; x++) {
+        if (UsernameT[x] == "\0") {
             UsernameT[x] = username;
             PasswrodT[x] = password;
             break;
         }
     }
+}
 
+void drawMenu(int selectedOption) {
+    system("cls");
+    cout << "\t\t\t\t\t\t\t\t===========================" << endl;
+    cout << "\t\t\t\t\t\t\t\t      C-Stock Manager" << endl;
+    cout << "\t\t\t\t\t\t\t\t===========================" << endl;
+
+    for (int i = 1; i <= 3; ++i) {
+        if (i == selectedOption) {
+            setConsoleColor(4 + 240);
+            cout << "\t\t\t\t\t\t\t\t\t" << i << ". ";
+        } else {
+            resetConsoleColor(); // Reset text color for non-selected options
+            cout << "\t\t\t\t\t\t\t\t\t" << i << ". ";
+        }
+
+        switch (i) {
+            case 1:
+                cout << "Login" << endl;
+                break;
+            case 2:
+                cout << "Sign Up" << endl;
+                break;
+            case 3:
+                cout << "Exit" << endl;
+                break;
+        }
+    }
+    resetConsoleColor(); // Reset text color after drawing the menu
+    cout << "\t\t\t\t\t\t\t\t===========================" << endl;
 }
 
 void header() {
+    int selectedOption = 1;
+    int key;
 
-    /*
-    This function displays the header and provides options for the user.
-    1. Clear the console screen.
-    2. Display the welcome message and available options (Login, Sign Up, Exit).
-    3. Prompt the user to choose an option.
-    4. Validate the user input to ensure it's a valid option.
-    5. Call the corresponding function based on the chosen option.
-    6. Repeat the process until the user chooses to exit.
-    */
+    do {
+        drawMenu(selectedOption);
 
-    int output;  
-    do
-    {
-        system("cls");
-        cout << "\t\t\t\t\t\tWelcome to C-Stock Manager" << endl;
-        cout << "\t\t\t\t\t\t1. Login" << endl;
-        cout << "\t\t\t\t\t\t2. Sign Up" << endl;
-        cout << "\t\t\t\t\t\t3. Exit" << endl; 
-        cout << "\n\t\t\t\t\t\tPlease choose one of the option: ";cin>>output;cout<<endl;
+        key = getArrowKey();
 
-        if (output == 1 || output == 2 || output == 3){
+        switch (key) {
+            case 72: // Up arrow key
+                selectedOption = (selectedOption == 1) ? 3 : selectedOption - 1;
+                break;
+            case 80: // Down arrow key
+                selectedOption = (selectedOption == 3) ? 1 : selectedOption + 1;
+                break;
+            case 13: // Enter key
+                switch (selectedOption) {
+                    case 1:
+                        system("cls");
+                        Log_in();
+                        break;
+                    case 2:
+                        system("cls");
+                        sign_up();
+                        store();
+                        break;
+                    case 3:
+                        cout << "\n\t\t\t\t\t\t\t\tExiting C-Stock Manager. Goodbye!" << endl;
+                        break;
+                }
+                break;
         }
-        else{
-            while (!(cin>>output))
-            {
-                cout<<"\n\t\t\t\t\t\tPlease enter a valid option only : ";
-                cin.clear();
-                cin.ignore(1230, '\n');
-            }
-        }
-
-        switch (output) {
-        case 1:
-            Log_in();
-            break;
-        case 2:
-            sign_up();
-            store();
-            break;
-        default:
-            cout << "\t\t\t\t\t\tExiting C-Stock Manager. Goodbye!" << endl;
-        }
-
-    } while (output != 3);
-    
+    } while (key != 13 || selectedOption != 3); // Keep looping until the Enter key is pressed (option selected)
 }
 
 void check() {
@@ -1435,6 +1677,14 @@ void check() {
         newfile << "admin,admin123"<<endl;
     }
     file.close();
+
+    file.open("totalsales.txt");
+    if (file.is_open()){
+    }
+    else{
+        ofstream newfile("totalsales.txt");
+    }
+    
     
 
 }
@@ -1449,6 +1699,8 @@ int main(){
     */
 
     check();
+    temp_Products_data();
     Open_all_files();
+    cout << fixed << setprecision(2);
     header();
 }
