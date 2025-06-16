@@ -1,4 +1,3 @@
 sharvin,123
 test1,pass1
-nigga,1234
 ,
